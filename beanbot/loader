@@ -1,0 +1,252 @@
+repeat
+    task.wait()
+until game:IsLoaded()
+local a = {}
+local b = {drawings = {}, hidden = {}, preloaded_images = {}}
+do
+    function a:Draw(c, d, e, f)
+        f = f or false
+        local g = Drawing.new(c)
+        local h = {}
+        rawset(h, "__OBJECT_EXIST", true)
+        setmetatable(
+            h,
+            {__index = function(self, i)
+                    if rawget(h, "__OBJECT_EXIST") then
+                        return g[i]
+                    end
+                end, __newindex = function(self, i, j)
+                    if rawget(h, "__OBJECT_EXIST") then
+                        g[i] = j
+                        if i == "Position" then
+                            for k, l in pairs(rawget(h, "children")) do
+                                l.Position = h.Position + l.GetOffset()
+                            end
+                        end
+                    end
+                end}
+        )
+        rawset(
+            h,
+            "Remove",
+            function()
+                if rawget(h, "__OBJECT_EXIST") then
+                    g:Remove()
+                    rawset(h, "__OBJECT_EXIST", false)
+                end
+            end
+        )
+        rawset(
+            h,
+            "GetType",
+            function()
+                return c
+            end
+        )
+        rawset(
+            h,
+            "GetOffset",
+            function()
+                return d or Vector2.new()
+            end
+        )
+        rawset(
+            h,
+            "SetOffset",
+            function(m)
+                d = m or Vector2.new()
+                h.Position = e.Parent.Position + h.GetOffset()
+            end
+        )
+        rawset(h, "children", {})
+        rawset(
+            h,
+            "Lerp",
+            function(n, o)
+                if not rawget(h, "__OBJECT_EXIST") then
+                    return
+                end
+                local p = 0
+                local q = {}
+                local r
+                for s, l in pairs(n) do
+                    q[s] = h[s]
+                end
+                local function t()
+                    for s, l in pairs(n) do
+                        h[s] = (l - q[s]) * p / o + q[s]
+                    end
+                end
+                r =
+                    rs.RenderStepped:Connect(
+                    function(u)
+                        if p < o then
+                            p = p + u
+                            t()
+                        else
+                            r:Disconnect()
+                        end
+                    end
+                )
+                table.insert(b.connections, r)
+            end
+        )
+        local v = {["Parent"] = function(w)
+                table.insert(rawget(w, "children"), h)
+            end}
+        if c == "Square" then
+            h.Thickness = 1
+            h.Filled = true
+        end
+        h.Visible = true
+        if e ~= nil then
+            for i, j in pairs(e) do
+                if v[i] == nil then
+                    h[i] = j
+                else
+                    v[i](j)
+                end
+            end
+            if e.Parent then
+                h.Position = e.Parent.Position + h.GetOffset()
+            end
+            if e.Parent and e.From then
+                h.From = e.Parent.Position + h.GetOffset()
+            end
+            if e.Parent and e.To then
+                h.To = e.Parent.Position + h.GetOffset()
+            end
+        end
+        if not f then
+            table.insert(b.drawings, {h, e["Transparency"] or 1})
+        else
+            table.insert(b.hidden, {h, e["Transparency"] or 1})
+        end
+        return h
+    end
+    function a:ScreenSize()
+        return workspace.CurrentCamera.ViewportSize
+    end
+    function a:RoundVector(x)
+        return Vector2.new(math.floor(x.X), math.floor(x.Y))
+    end
+    function a:MouseOverDrawing(w)
+        local y = {w.Position, w.Position + w.Size}
+        local z = uis:GetMouseLocation()
+        return z.X >= y[1].X and z.Y >= y[1].Y and z.X <= y[2].X and z.Y <= y[2].Y
+    end
+    function a:MouseOverPosition(y)
+        local z = uis:GetMouseLocation()
+        return z.X >= y[1].X and z.Y >= y[1].Y and z.X <= y[2].X and z.Y <= y[2].Y
+    end
+    function a:Image(w, A)
+        local B = b.preloaded_images[A] or game:HttpGet(A)
+        if b.preloaded_images[A] == nil then
+            b.preloaded_images[A] = B
+        end
+        w.Data = B
+    end
+    function a:Connect(r, C)
+        local D = r:Connect(C)
+        table.insert(b.connections, D)
+        return D
+    end
+end
+local E = Color3.fromRGB(127, 72, 163)
+local F = Color3.fromRGB(87, 32, 123)
+local G =
+    a:Draw(
+    "Square",
+    nil,
+    {
+        Color = Color3.fromRGB(50, 50, 50),
+        Size = Vector2.new(270, 64),
+        Position = a:RoundVector(a:ScreenSize() / 2) - Vector2.new(135, 32)
+    }
+)
+local H =
+    a:Draw(
+    "Square",
+    Vector2.new(-1, -1),
+    {Color = Color3.fromRGB(20, 20, 20), Size = G.Size + Vector2.new(2, 2), Filled = false, Parent = G}
+)
+local I =
+    a:Draw(
+    "Square",
+    Vector2.new(-2, -2),
+    {Color = Color3.fromRGB(0, 0, 0), Size = G.Size + Vector2.new(4, 4), Filled = false, Parent = G}
+)
+local J = a:Draw("Square", Vector2.new(), {Color = E, Size = Vector2.new(G.Size.X, 1), Parent = G})
+local K = a:Draw("Square", Vector2.new(0, 1), {Color = F, Size = Vector2.new(G.Size.X, 1), Parent = G})
+local L =
+    a:Draw(
+    "Square",
+    Vector2.new(0, 2),
+    {Color = Color3.fromRGB(20, 20, 20), Size = Vector2.new(G.Size.X, 1), Parent = G}
+)
+local M = a:Draw("Image", Vector2.new(0, 3), {Size = G.Size - Vector2.new(0, 3), Parent = G})
+local N =
+    a:Draw(
+    "Text",
+    Vector2.new(G.Size.X / 2, 9),
+    {
+        Color = Color3.fromRGB(255, 255, 255),
+        Outline = true,
+        Size = 13,
+        Font = 2,
+        Text = "Waiting for the game.",
+        Center = true,
+        Parent = M
+    }
+)
+local O =
+    a:Draw("Square", Vector2.new(11, 43), {Color = Color3.fromRGB(35, 35, 35), Size = Vector2.new(250, 10), Parent = G})
+local P =
+    a:Draw(
+    "Square",
+    Vector2.new(-1, -1),
+    {Color = Color3.fromRGB(20, 20, 20), Size = O.Size + Vector2.new(2, 2), Filled = false, Parent = O}
+)
+local Q =
+    a:Draw(
+    "Square",
+    Vector2.new(-2, -2),
+    {Color = Color3.fromRGB(0, 0, 0), Size = O.Size + Vector2.new(4, 4), Filled = false, Parent = O}
+)
+local R = a:Draw("Square", Vector2.new(0, 0), {Color = E, Size = Vector2.new(O.Size.X * 0.2, O.Size.Y), Parent = O})
+local S = a:Draw("Image", Vector2.new(), {Size = R.Size, Parent = R})
+a:Image(M, "https://i.imgur.com/5hmlrjX.png")
+a:Image(S, "https://i.imgur.com/5hmlrjX.png")
+function NewState(T, U)
+    N.Text = T
+    R.Size = Vector2.new(O.Size.X * U, O.Size.Y)
+    S.Size = R.Size
+end
+local V = "http://beanbot.fun/beanbot/"
+local W = syn and syn.request or requset or http_request
+local X = {[3445639790] = "dahood", [1008451066] = "dahood"}
+spawn(
+    function()
+        task.wait(0.3)
+        loadstring(W({Url = V .. (X[game.GameId] or "universal") .. ".php", Method = "GET"}).Body)()
+    end
+)
+NewState("Waiting for game and cheat.", 0.2)
+repeat
+    task.wait()
+until game:IsLoaded() and window_state ~= nil
+NewState("Pre-Initializing.", 0.6)
+repeat
+    task.wait()
+until window_state == "initializing"
+NewState("Initializing.", 0.8)
+repeat
+    task.wait()
+until window_state == "post"
+NewState("Post-Initializing.", 0.95)
+repeat
+    task.wait()
+until window_state == "finished"
+for s, l in pairs(b.drawings) do
+    l[1].Remove()
+end
