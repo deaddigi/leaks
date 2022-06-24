@@ -1,0 +1,13 @@
+(you need a whitelisted person to do this)
+first find their like loader link or some shit and setclipboard() that
+then after u wanna do soemthing similar to this 
+lolcool = 0
+_ls = hookfunc(loadstring,function(...)
+    a={...}
+    lolcool += 1
+    writefile("loadstringDump"..tostring(lolcool)..".txt",a[1])
+    return _ls(...)
+end)
+or just make ur own bypass or something
+and then like just run it in any supported game
+:checkmark: boom
